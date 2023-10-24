@@ -1,0 +1,24 @@
+﻿body {
+    background: black;
+}
+
+.navbar-div {
+    background: black;
+}
+
+.navbar a {
+    color: white;
+}
+
+.password-icon {
+    float: right;
+    margin-left: -25px;
+    margin-top: -25px;
+    position: relative;
+    z-index: 2;
+    margin-right: 13px;
+}
+
+.pointer {
+    cursor: pointer !important;
+}

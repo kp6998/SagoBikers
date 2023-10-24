@@ -1,0 +1,53 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title</title>
+    <script src="~/Content/JS/Default/3.6.1.jquery.min.js"></script>
+    <script src="~/Content/JS/Default/jquery.blockUI.js"></script>
+    <link href="~/Content/CSS/Default/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/fontawesome-free-6.2.0-web/css/all.css" rel="stylesheet" />
+
+    <link href="~/Content/CSS/Custom/LightTheme.css" rel="stylesheet" />
+
+</head>
+
+<body>
+    <div class="body-content mb-5">
+        @RenderBody()
+    </div>
+
+    <div class="fixed-bottom border-top px-3 navbar-div">
+        <nav class="navbar">
+            <a href="#" class="navoption optFeeds selectedNav" onclick="selectedNav('Feeds')"><i class="fa-solid fa-house h3"></i></a>
+            <a href="#" class="navoption optClubs" onclick="selectedNav('Clubs')"><i class="fa-solid fa-people-roof h3"></i></a>
+            <a href="#" class="navoption optProfile" onclick="selectedNav('Profile')"><i class="fa-solid fa-user h3"></i></a>
+            <a href="#" class="navoption optNotification" onclick="selectedNav('Notification')"><i class="fa-solid fa-bell h3"></i></a>
+            <a href="#" class="navoption optShops" onclick="selectedNav('Shops')"><i class="fa-solid fa-shop h3"></i></a>
+        </nav>
+    </div>
+</body>
+</html>
+
+<style>
+    .selectedNav {
+        color: #0d6efd !important;
+    }
+</style>
+
+<script>
+    function selectedNav(opt) {
+        if (opt != 'Profile') {
+            window.location.href = "/" + opt;
+        }
+        else {
+            const path = "@Url.Action("GetUsername", "Home")";
+            $.post(path, function (data) {
+                var customUsername = data.GetUsername;
+                var url = "/Profile/" + customUsername;
+                window.location.href = url;
+            });
+        }
+    }
+</script>

@@ -1,0 +1,80 @@
+﻿<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>ImageUpload</title>
+    <script src="~/Content/JS/Default/3.6.1.jquery.min.js"></script>
+    <script src="~/Content/JS/Default/jquery.blockUI.js"></script>
+    <link href="~/Content/CSS/Default/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/fontawesome-free-6.2.0-web/css/all.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="container text-center p-2">
+        <div class="border border-dark">
+            <label class="w-100 p-2" for="imgUpload">
+                <img id="imgPreview" src="~/Content/Images/addimage.png" style="max-width: 100%; max-height: 300px;"/>
+            </label>
+            <input type="file" accept="image/*" name="imgUpload" id="imgUpload" onchange="LoadFile(event)" style="display:none" />
+        </div>
+        <div class="pt-2">
+            <textarea class="mgeTextbox" placeholder="Text"></textarea>
+        </div>
+        <div class="pt-2">
+            <input type="button" class="btn btn-primary btn-lg" value="Upload" onclick="ImageUpload()"/>
+        </div>
+        <span id="file"></span>
+    </div>
+</body>
+<style>
+    .container {
+        max-width: 500px !important;
+    }
+    .mgeTextbox {
+        height: 100px;
+        width: 100%;
+        resize: none;
+    }
+    
+</style>
+<script>
+    function LoadFile(event) {
+        const file = $('#imgUpload')[0].files[0];
+        if (file) {
+            $('#imgPreview').attr('src', URL.createObjectURL(file));
+        }
+    }
+    function ImageUpload() {
+
+        if ($('#imgUpload')[0].files.length == 0) {
+            alert("Choose Image");
+            return false;
+        }
+        var formData = new FormData();
+        formData.append('file', $('#imgUpload')[0].files[0]);
+        formData.append('postContent', $('.mgeTextbox').val() == null ? " " : $('.mgeTextbox').val());
+        const Credentials =  "@Url.Action("UploadPost", "Home")";
+        $.ajax({
+            type: "POST",
+            url: Credentials,
+            data: formData,
+            dataType: "json",
+            contentType: false,
+            processData: false,
+            success: function (data) {
+                if (data.Status == "01") {
+                    alert(data.Message);
+                    window.location.href = "@Url.Action("HomePage", "Home")";
+                }
+                else if (data.Status == "00") {
+                    alert(data.Message);
+                }
+                else {
+                    alert("Unable to Insert now. Please try again later.")
+                }
+            },
+            error: function (ex) {
+                alert("Unable to connect remote server.")
+            }
+        });
+    }
+
+</script>
+

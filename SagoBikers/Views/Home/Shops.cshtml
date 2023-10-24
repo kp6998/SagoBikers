@@ -1,0 +1,24 @@
+﻿
+@{
+    ViewBag.Title = "Shops";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div>
+    <h2>Shops</h2>
+    <input type="button" value="Logout" onclick="logout()" />
+</div>
+<script>
+    $(document).ready(function () {
+        $(".navoption").removeClass("selectedNav");
+        $(".optShops").addClass("selectedNav");
+    });
+
+    function logout() {
+        localStorage.removeItem("Token");
+        const path = "@Url.Action("Logout", "Home")";
+        $.get(path, function (data) {
+            alert(data);
+            window.location.href = "@Url.Action("Login", "Home")";
+        });
+    }
+</script>

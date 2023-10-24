@@ -1,0 +1,126 @@
+﻿<html>
+<head>
+    <title>Edit profile</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="~/Content/JS/Default/3.6.1.jquery.min.js"></script>
+    <script src="~/Content/JS/Default/jquery.blockUI.js"></script>
+    <link href="~/Content/CSS/Default/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/fontawesome-free-6.2.0-web/css/all.css" rel="stylesheet" />
+</head>
+<body>
+    <div>
+        <div class="fixed-top border-bottom px-2 d-flex position-sticky align-items-center justify-content-between navbar-div bg-white">
+            <div class="col-2" onclick="history.back()">
+                <i class="fa-solid fa-chevron-left" style="font-size: larger;"></i>
+            </div>
+            <div>
+                <h3 class="mb-0 p-1">Edit profile</h3>
+            </div>
+            <div class="col-2 text-end" onclick="">
+                <i class="fa-solid fa-check text-primary" style="font-size: larger;"></i>
+            </div>
+        </div>
+        <div class="modal bg-dark bg-opacity-50" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered justify-content-center">
+                <div class="modal-content w-75">
+                    <div class="modal-header align-self-center p-2">
+                        <h5 class="modal-title">Change profile photo</h5>
+                    </div>
+                    <div class="modal-body p-2">
+                        <button type="button" class="mb-1 w-100 btn btn-primary" onclick="OpenFile()">Upload photo</button>
+                        <button type="button" class="mb-1 w-100 btn btn-danger" onclick="RemovePhoto()">Remove photo</button>
+                        <button type="button" class="mb-1 w-100 btn btn-secondary" onclick="ShowModel(false)">Cancel</button>
+                        <input type="file" accept="image/*" name="imgUpload" id="imgUpload" onchange="LoadFile(event)" style="display:none" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="profileEditBody text-center p-2">
+            <div class="mb-2">
+                <img class="avatar-img rounded-circle profilePic" src="~/Content/Images/dummyPic.jpg" alt="" style="height: 100px;">
+                <h6 class="mb-0 text-primary" onclick="ShowModel(true)">Change profile photo</h6>
+            </div>
+            <div>
+                <div class="form-outline mb-2">
+                    <input type="text" id="strFullName" class="form-control" placeholder="Enter your fullname" />
+                </div>
+                <div class="form-outline mb-2">
+                    <input type="text" id="strUsername" class="form-control" placeholder="Enter your username" />
+                </div>
+                <div class="form-outline mb-2">
+                    <input type="text" id="strUserLocation" class="form-control" placeholder="Enter your location" />
+                </div>
+                <div class="form-outline mb-2">
+                    <input type="text" id="strUserBio" class="form-control" placeholder="Enter your bio" />
+                </div>
+                <div class="form-outline mb-2">
+                    <input type="text" id="strEmail" class="form-control" placeholder="Enter your email" />
+                </div>
+                <div class="form-outline mb-2">
+                    <input type="text" id="strMobileNum" class="form-control" placeholder="Enter your mobile number" />
+                </div>
+                <div class="form-outline mb-2">
+                    <select id="strGender" class="form-control" placeholder="" name="Gender">
+                        <option value="">Select your gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Transgender">Transgender</option>
+                    </select>
+                </div>
+                <div class="form-outline mb-2">
+                    <input type="text" id="strDob" class="form-control" placeholder="Choose your date of birth" />
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+<script>
+    $(document).ready(function () {
+        GetProfile();
+    });
+    function OpenFile() {
+        $('#imgUpload').click();
+    }
+    function ShowModel(bool) {
+        bool == true ? $('.modal').addClass('d-block') : $('.modal').removeClass('d-block');
+    }
+    function RemovePhoto() {
+
+    }
+    function GetProfile() {
+        var param = {
+            strFlag: "EF"
+        }
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("ManageProfile", "Home")',
+            data: JSON.stringify(param),
+            dataType: 'json',
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                if (data.Status == "01") {
+                    var json = JSON.parse(data.Message);
+                    var profileDtls = json.Temp[0];
+                    $('#strFullName').val(profileDtls['FULLNAME']);
+                    $('#strUsername').val(profileDtls['USERNAME']);
+                    $('#strMobileNum').val(profileDtls['MOBILE'] == null ? "" : profileDtls['MOBILE']);
+                    $('#strEmail').val(profileDtls['MAIL'] == null ? "" : profileDtls['MAIL']);
+                    $('#strGender').val(profileDtls['GENDER'] == null ? "" : profileDtls['GENDER']);
+                    $('#strUserBio').val(profileDtls['USERBIO'] == null ? "" : profileDtls['USERBIO']);
+                    $('#strUserLocation').val(profileDtls['USERLOCATION'] == null ? "" : profileDtls['USERLOCATION']);
+                    $('#strDob').val(profileDtls['DOB'] == null ? "" : profileDtls['DOB']);
+                    if (profileDtls['PROPICPATH'] != "" && profileDtls['PROPICPATH'] != null) {
+                        $(".profilePic").attr("src", data.ProPicPath + profileDtls['PROPICPATH']);
+                    }
+                }
+                else {
+                    alert(data.Message);
+                }
+            },
+            error: function (ex) {
+                alert("Unable to connect remote server.");
+            }
+        });
+    }
+</script>

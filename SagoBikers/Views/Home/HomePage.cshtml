@@ -1,0 +1,521 @@
+﻿@{
+    ViewBag.Title = "HomePage";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    a {
+        text-decoration: none;
+    }
+
+    .cards-div {
+        text-align: -webkit-center;
+    }
+
+    .card {
+        max-width: 500px;
+        text-align: initial;
+        margin-bottom: 5px;
+    }
+
+    .commentPopup {
+        height: 100%;
+        width: 100%;
+        background-color: white;
+        overflow-x: hidden;
+        text-align: -webkit-center;
+        bottom: 50px;
+        display: none;
+    }
+
+    .yoloPopup {
+        height: 100%;
+        width: 100%;
+        background-color: white;
+        overflow-x: hidden;
+        text-align: -webkit-center;
+        bottom: 50px;
+        display: none;
+    }
+
+    .card-popup {
+        max-width: 500px;
+    }
+
+    .popup-fetch {
+        margin-bottom: 100px;
+        text-align: left;
+    }
+
+    .yoloactive {
+        color: #368ee6;
+        font-weight: bold;
+    }
+
+    .btn-follow {
+        background: #0d6efd;
+        border: 1px solid #0d6efd;
+        color: white;
+        border-radius: 18px;
+        padding-left: 19%;
+        padding-right: 19%;
+        font-weight: 700;
+    }
+</style>
+<div class="fixed-top border-bottom px-3 d-flex position-sticky navbar-div">
+    <div class="col-4"><img src="~/Content/Images/bikersTransparent.png" style="width: 75px; height: 46px; object-fit: cover;" /></div>
+    <div class="col-2"></div>
+    <div class="col-6">
+        <nav class="navbar">
+            <a href="/FindUser" class=""><i class="fa-solid fa-magnifying-glass h3"></i></a>
+            <a href="/Post" class=""><i class="fa-regular fa-square-plus h3"></i></a>
+            <a href="/Chat" class=""><i class="fa-regular fa-message h3"></i></a>
+        </nav>
+    </div>
+</div>
+
+<div class="cards-div p-2" id="dvPostArea">
+</div>
+
+<!-- Scrollable modal -->
+<div class="commentPopup fixed-top">
+    <div class="card-popup">
+        <div class="d-flex align-items-center py-1 border-bottom fixed-top position-sticky bg-white">
+            <div class="col-2" onclick="ClosePopup('commentPopup')">
+                <i class="fa-solid fa-chevron-left" style="font-size: larger;"></i>
+            </div>
+            <div class="col-8">
+                <h3>Comments</h3>
+            </div>
+            <div class="col-2">
+                <i class="fa-solid fa-share" style="font-size: larger;"></i>
+            </div>
+        </div>
+        <div class="popup-fetch p-2" id="dvCmtBody">
+            <div class="d-flex" style="justify-content: center;margin-top: 22%;">
+                <div>
+                    <span class="clsNoCmnt">You may be the first commented person</span>
+                </div>
+            </div>
+
+        </div>
+        <div class="comment-add p-2 border-top fixed-bottom bg-white mb-5">
+            <div class="d-flex card-popup">
+                <div class="avatar avatar-xs">
+                    <a href="#!"><img class="avatar-img rounded-circle commentUserProPic" src="~/Content/Images/dummyPic.jpg" alt="" style="height: 40px;"></a>
+                </div>
+                <form class="w-100 px-2">
+                    <input type="text" maxlength="100" id="txtComments" class="form-control pe-4 bg-light" rows="1" placeholder="Add a comment..."/>
+                </form>
+                <div class="">
+                    <input type="button" class="btn btn-primary" value="Post" id="btnComment" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="yoloPopup fixed-top">
+    <div class="card-popup">
+        <div class="d-flex align-items-center py-1 border-bottom fixed-top position-sticky bg-white">
+            <div class="col-2" onclick="ClosePopup('yoloPopup')">
+                <i class="fa-solid fa-chevron-left" style="font-size: larger;"></i>
+            </div>
+            <div class="col-8">
+                <h3>Yolos</h3>
+            </div>
+            <div class="col-2" style="display:none">
+                <i class="fa-solid fa-share" style="font-size: larger;"></i>
+            </div>
+        </div>
+        <div class="popup-fetch p-1" id="dvYoloBody">
+            <div class="d-flex" style="justify-content: center;margin-top: 22%;">
+                <div>
+                    <span class="clsNoCmnt">You may be the first yolo person</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<input type="hidden" id="hdnPostID" />
+<input type="hidden" id="hdnPostSeqID" />
+
+<script>
+    //********************************Post Region***************************/
+    var PostCountExist = false;
+    $(document).ready(function () {
+        $(".navoption").removeClass("selectedNav");
+        $(".optFeeds").addClass("selectedNav");
+        GetPost();
+    });
+
+    function GetPost() {
+        var param =
+        {
+            strUserId: "",
+            exisitPostCount: $(".clsPost").length,
+            strFlag: "AP"
+        }
+        $.ajax({
+           type: 'POST',
+              url: '@Url.Action("GetPosts", "Home")',
+              data: JSON.stringify(param),
+              dataType: 'json',
+              contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                if (data.Status == "01") {
+                    var json = JSON.parse(data.Message);
+                    json = json.Temp;
+                    var printCards = '';
+                    for (var i = 0; i < json.length; i++){
+                        var jsonData = json[i];
+                        printCards += '<div class="clsPost card px-1 card' + i + '">';
+                        printCards += '<input class="clsPostID"  type="hidden" value="' + jsonData["POSTID"] +'">';
+                        printCards += '<div class="card-header bg-transparent p-2" >';
+                        printCards += '<div class="d-flex justify-content-between">';
+                        printCards += '<div class="d-flex">';
+                        printCards += '<div class="avatar me-2">';
+                        var proPicPath = '/Content/Images/dummyPic.jpg';
+                        if (jsonData["PROPICPATH"] != null && jsonData["PROPICPATH"] != "") proPicPath = data.ProPicPath + jsonData["PROPICPATH"];
+                        printCards += '<a href="#"> <img class="avatar-img rounded-circle" src="' + proPicPath + '" alt="" style="height: 40px;"> </a>';
+                        printCards += '</div>';
+                        printCards += '<div>';
+                        printCards += '<a href="#"><h6 class="mb-0 postUsername' + i + '"> ' + jsonData["USERNAME"] + '</h6></a>';
+                        printCards += '<p class="mb-0 small postTime' + i + '">' + CalculatePostTime(jsonData["POSTDATETIME"]) + '</p>';
+                        printCards += '</div>';
+                        printCards += '</div>';
+                        printCards += '<div class="dropdown">';
+                        printCards += '<a href="#" class="btn" id="cardFeedAction"> <i class="fa-solid fa-ellipsis-vertical"></i> </a>';
+                        printCards += '</div>';
+                        printCards += '</div> ';
+                        printCards += '</div >  ';
+                        printCards += '<div class="card-body bg-transparent p-2"> ';
+                        printCards += '<p class="postContent' + i + '">' + jsonData["POSTCONTENT"] + '</p >';
+                        printCards += '<img class="card-img postImg' + i + '" src="' + (data.Path + jsonData["POSTPATH"]) + '" alt="Post"> ';
+                        printCards += '<div class="mt-1" style="">';
+                        if (jsonData["LikesCount"] != "") {
+                            printCards += '<span class="yolo pointer" onclick="GetYolo(this)" data-seqno = "' + i + '" data-count="' + jsonData["LikesCount"] + '">' + (parseInt(jsonData["LikesCount"]) > 1 ? (jsonData["LikesCount"] + ' Yolos') : '1 Yolo') + '</span>';
+                        }
+                        else {
+                            printCards += '<span class="yolo" style="display:none;" onclick="GetYolo(this)" data-seqno = "' + i + '" data-count="0">No Yolos</span>';
+                        }
+                        if (jsonData["CommentsCount"] != "") {
+                            printCards += '<span class="cmnt pointer" onclick="GetComment(this)" data-seqno = "' + i + '" style = "float: right;" data-count="' + jsonData["CommentsCount"] + '" > ' + (parseInt(jsonData["CommentsCount"]) > 1 ? (jsonData["CommentsCount"] + ' Comments') : '1 Comment') + '</span>';
+                        }
+                        else {
+                            printCards += '<span class="cmnt" style="display:none;float: right;" onclick="GetComment(this)" data-seqno = "' + i + '"  data-count="0" > No Comments</span>';
+                        }
+                        printCards += '</div>';
+                        printCards += '</div>';
+                        printCards += '<div class="card-footer bg-transparent p-2">  ';
+                        printCards += '<nav class="navbar"> ';
+                        if (parseInt(jsonData["DEFAULTLIKE"]) > 0) {
+                            printCards += '<div class=" yoloactive pointer" onclick="TriggerYolo(this)" data-seqno = "' + i + '"><img src="/Content/Icons/yolo_Active.png" width = "25px" class="Imgyolo" /> Yolo</div> ';
+                        }
+                        else {
+                            printCards += '<div class="pointer" onclick="TriggerYolo(this)" data-seqno = "' + i + '"><img src="/Content/Icons/yolo.png" width = "25px" class="Imgyolo" /> Yolo</div> ';
+                        }
+                        printCards += '<div class="pointer" onclick="GetComment(this)" data-seqno = "' + i + '"><img src="/Content/Icons/comment.png" width = "25px" /> Comment</div> ';
+                        printCards += '<div class="pointer"><img src="/Content/Icons/share.png" width = "25px" /> Share</div>';
+                        printCards += '</nav>';
+                        printCards += '</div>';
+                        printCards += '</div > ';
+                    }
+                    $(".clsPost").length > 0 ? $('.cards-div').append(printCards) : $('.cards-div').html(printCards);
+                }
+                else {
+                    PostCountExist = true;
+                    alert(data.Message);
+                }
+            },
+            error: function (ex) {
+                PostCountExist = true;
+                alert("Unable to connect remote server.");
+            }
+        });
+    }
+    //********************************Yolo Region***************************/
+    function TriggerYolo(e) {
+        var i = $(e).data("seqno");
+        var Flag = $(e).hasClass("yoloactive") ? "RL" : "IL";
+          var param =
+          {
+              strPostID:  $(e).parents(".card" + i).find(".clsPostID").val(),
+              strFlag   :  $(e).hasClass("yoloactive") ? "RL" : "IL"
+          }
+          $.ajax({
+              type: 'POST',
+              url: '@Url.Action("PostActions", "Home")',
+              data: JSON.stringify(param),
+              dataType: 'json',
+              contentType: 'application/json; charset=utf-8',
+              success: function (data) {
+                  if (data.Status == "01") {
+                      if (Flag == "IL") {
+                          $(e).addClass("yoloactive");
+                          $(e).find(".Imgyolo").attr("src", "/Content/Icons/yolo_Active.png");
+                          var Prevyolo = parseInt($(e).parents(".card" + i).find(".yolo").attr("data-count")) + 1;
+                          $(e).parents(".card" + i).find(".yolo").attr("data-count", Prevyolo);
+                          $(e).parents(".card"+i).find(".yolo").html(Prevyolo > 1 ? Prevyolo + " Yolos" : "1 Yolo").show();
+                      }
+                      else {
+                          $(e).removeClass("yoloactive");
+                          $(e).find(".Imgyolo").attr("src", "/Content/Icons/yolo.png");
+                          var Prevyolo = parseInt($(e).parents(".card" + i).find(".yolo").attr("data-count")) - 1;
+                          $(e).parents(".card" + i).find(".yolo").attr("data-count", Prevyolo);
+                          if (Prevyolo > 0)
+                              $(e).parents(".card" + i).find(".yolo").html(Prevyolo > 1 ? Prevyolo + "Yolos" : "1 Yolo").show();
+                          else
+                              $(e).parents(".card" + i).find(".yolo").html("").hide()
+                      }
+                  }
+                  else {
+                      alert(data.Message)
+                  }
+              },
+              error: function (ex) {
+                  alert("Unable to connect remote server.");
+              }
+          });
+    }
+    function GetYolo(e)
+    {
+        var i = $(e).data("seqno");
+        $("#hdnPostSeqID").val(i);
+        $("#hdnPostID").val($(e).parents(".card" + i).find(".clsPostID").val())
+        $("#dvCmtBody").html();
+        $("#txtComments").val("");
+        var param =
+          {
+              strPostID:  $(e).parents(".card" + i).find(".clsPostID").val(),
+              strFlag   :  "SL"
+          }
+              $.ajax({
+              type: 'POST',
+              url: '@Url.Action("PostActions", "Home")',
+              data: JSON.stringify(param),
+              dataType: 'json',
+              contentType: 'application/json; charset=utf-8',
+                  success: function (data) {
+                      var YoloBuilder = "";
+                      if (data.Status == "01") {
+                          var Response = JSON.parse(data.Response);
+                          $.each(Response, function (i,val) {
+                              YoloBuilder += '<div class="d-flex mt-1">'
+                              YoloBuilder += '<div class="">'
+                              var proPicPath = '/Content/Images/dummyPic.jpg';
+                              if (val.PROPICPATH != null && val.PROPICPATH != "") proPicPath = data.ProPicPath + val.PROPICPATH;
+                              YoloBuilder += '<a href="#!"><img class="avatar-img rounded-circle" src="' + proPicPath + '" alt="" style="height: 40px;"></a>'
+                              YoloBuilder += '</div>'
+                              YoloBuilder += '<div class="ms-2 w-100">'
+                              YoloBuilder += '<div class="bg-light p-1 rounded d-flex">'
+                              YoloBuilder += '<div class="col-8">'
+                              YoloBuilder += '<div class="">'
+                              YoloBuilder += '<h6 class="mb-0"> <a href="#!"> ' + val.USERNAME + ' </a></h6>'
+                              YoloBuilder += '</div>'
+                              YoloBuilder += '<div class="">'
+                              YoloBuilder += '<p class="mb-0">' + val.FULLNAME + '</p>'
+                              YoloBuilder += '</div>'
+                              YoloBuilder += '</div>'
+                              YoloBuilder += '<div class="col-4 align-self-center">'
+                              YoloBuilder += '<button class="small mb-0 btn-follow">Follow</button>'
+                              YoloBuilder += '</div>'
+                              YoloBuilder += '</div>'
+                              YoloBuilder += '</div>'
+                              YoloBuilder += '</div>'
+                          })
+
+                          $("#dvYoloBody").html(YoloBuilder);
+                  }
+                  else {
+                          YoloBuilder += '<div class="d-flex" style="justify-content: center;margin-top: 22%;">'
+                          YoloBuilder += '<div>'
+                          YoloBuilder += '<i class="fa fa-comments-o" aria-hidden="true" style="font-size: 114px;"></i>'
+                          YoloBuilder += '<span class="clsNoCmnt">You may be the first yolo person</span>'
+                          YoloBuilder += '</div>'
+                          YoloBuilder += '</div>'
+                          $("#dvYoloBody").html(YoloBuilder);
+                  }
+              },
+              error: function (ex) {
+                  alert("Unable to connect remote server.");
+              }
+              });
+        $('.yoloPopup').show();
+    }
+    //*********************Comments Regin**********************/
+    function GetComment(e)
+    {
+        var i = $(e).data("seqno");
+        $("#hdnPostSeqID").val(i);
+        $("#hdnPostID").val($(e).parents(".card" + i).find(".clsPostID").val())
+        $("#dvCmtBody").html();
+        $("#txtComments").val("");
+        var param =
+          {
+              strPostID:  $(e).parents(".card" + i).find(".clsPostID").val(),
+              strFlag   :  "SC"
+          }
+          $.ajax({
+              type: 'POST',
+              url: '@Url.Action("PostActions", "Home")',
+              data: JSON.stringify(param),
+              dataType: 'json',
+              contentType: 'application/json; charset=utf-8',
+                  success: function (data) {
+                      var CmntBuilder = "";
+                      if (data.Status == "01") {
+                          var Response = JSON.parse(data.Response);
+                          var userProPic = Response.Temp1[0].PROPICPATH;
+                          if (userProPic != "" && userProPic != null) {
+                              $(".commentUserProPic").attr("src", data.ProPicPath + userProPic);
+                          }
+                          Response = Response.Temp;
+                          $.each(Response, function (i, val) {
+                              CmntBuilder += '<div class="d-flex mt-1">'
+                              CmntBuilder += '<!-- Avatar -->'
+                              CmntBuilder += '<div class="">'
+                              var proPicPath = '/Content/Images/dummyPic.jpg';
+                              if (val.PROPICPATH != null && val.PROPICPATH != "") proPicPath = data.ProPicPath + val.PROPICPATH;
+                              CmntBuilder += '<a href="#!"><img class="avatar-img rounded-circle" src="' + proPicPath + '" alt="" style="height: 40px;"></a>'
+                              CmntBuilder += '</div>'
+                              CmntBuilder += '<div class="ms-2 w-100">'
+                              CmntBuilder += '<!-- Comment by -->'
+                              CmntBuilder += '<div class="bg-light p-1 rounded">'
+                              CmntBuilder += '<div class="d-flex justify-content-between">'
+                              CmntBuilder += '<h6 class="mb-1"> <a href="#!"> ' + val.USERNAME + ' </a></h6>'
+                              CmntBuilder += '<small class="ms-2">' + CalculatePostTime(val.COMMENTDATETIME) + '</small>'
+                              CmntBuilder += '</div>'
+                              CmntBuilder += '<p class="small mb-0">' + val.COMMENTS + '</p>'
+                              CmntBuilder += '</div>'
+                              CmntBuilder += '<!-- Comment react -->'
+                              CmntBuilder += '<ul class="nav nav-divider py-2 small" style="display:none;">'
+                              CmntBuilder += '<li class="nav-item d-flex">'
+                              CmntBuilder += '<div class=""><img src="~/Content/Icons/yolo.png" width="25px" /></div>'
+                              CmntBuilder += '<a class="nav-link p-1" href="#!">3 Yolo(s)</a>'
+                              CmntBuilder += '</li>'
+                              CmntBuilder += '</ul>'
+                              CmntBuilder += '</div>'
+                              CmntBuilder += '</div>'
+                          });
+                      $("#dvCmtBody").html(CmntBuilder);
+                  }
+                  else {
+                          CmntBuilder += '<div class="d-flex" style="justify-content: center;margin-top: 22%;">'
+                          CmntBuilder += '<div>'
+                          CmntBuilder += '<i class="fa fa-comments-o" aria-hidden="true" style="font-size: 114px;"></i>'
+                          CmntBuilder += '<span class="clsNoCmnt">You may be the first commented person</span>'
+                          CmntBuilder += '</div>'
+                          CmntBuilder += '</div>'
+                          $("#dvCmtBody").html(CmntBuilder);
+                  }
+              },
+              error: function (ex) {
+                  alert("Unable to connect remote server.");
+              }
+              });
+            $('.commentPopup').show();
+    }
+    $("#btnComment").click(function () {
+        if ($("#txtComments").val() == "") {
+            alert("Please enter the comment");
+            return false;
+        }
+        var param =
+        {
+            strPostID: $("#hdnPostID").val(),
+            strCmnt: $("#txtComments").val(),
+            strFlag: "IC"
+        }
+         $.ajax({
+              type: 'POST',
+              url: '@Url.Action("PostActions", "Home")',
+              data: JSON.stringify(param),
+              dataType: 'json',
+              contentType: 'application/json; charset=utf-8',
+              success: function (data) {
+                  if (data.Status == "01") {
+                      var CmntBuilder = "";
+                          CmntBuilder += '<div class="d-flex mt-1">'
+                          CmntBuilder += '<!-- Avatar -->'
+                          CmntBuilder += '<div class="">'
+                          CmntBuilder += '<a href="#!"><img class="avatar-img rounded-circle" src="/Content/Images/dummyPic.jpg" alt="" style="height: 40px;"></a>'
+                          CmntBuilder += '</div>'
+                          CmntBuilder += '<div class="ms-2 w-100">'
+                          CmntBuilder += '<!-- Comment by -->'
+                          CmntBuilder += '<div class="bg-light p-1 rounded">'
+                          CmntBuilder += '<div class="d-flex justify-content-between">'
+                          CmntBuilder += '<h6 class="mb-1"> <a href="#!"> ' + data.UserName + ' </a></h6>'
+                          CmntBuilder += '<small class="ms-2">now</small>'
+                          CmntBuilder += '</div>'
+                          CmntBuilder += '<p class="small mb-0">' + param.strCmnt + '</p>'
+                          CmntBuilder += '</div>'
+                          CmntBuilder += '<!-- Comment react -->'
+                          CmntBuilder += '<ul class="nav nav-divider py-2 small" style="display:none;">'
+                          CmntBuilder += '<li class="nav-item d-flex">'
+                          CmntBuilder += '<div class=""><img src="~/Content/Icons/yolo.png" width="25px" /></div>'
+                          CmntBuilder += '<a class="nav-link p-1" href="#!">3 Yolo(s)</a>'
+                          CmntBuilder += '</li>'
+                          CmntBuilder += '</ul>'
+                          CmntBuilder += '</div>'
+                      CmntBuilder += '</div>'
+                      $("#dvCmtBody").find(".clsNoCmnt").length > 0 ? $("#dvCmtBody").html(CmntBuilder) : $("#dvCmtBody").append(CmntBuilder);
+                      $("#txtComments").val("");
+                      var PrevCmntCnt = parseInt($(".card" + $("#hdnPostSeqID").val()).find(".cmnt").attr("data-count")) + 1;
+                      $(".card" + $("#hdnPostSeqID").val()).find(".cmnt").attr("data-count", PrevCmntCnt);
+                      $(".card" + $("#hdnPostSeqID").val()).find(".cmnt").html(PrevCmntCnt > 1 ? PrevCmntCnt +" Comments" : "1 Comment").show();
+                  }
+                  else {
+                      alert(data.Message)
+                  }
+              },
+              error: function (ex) {
+                  alert("Unable to connect remote server.");
+              }
+          });
+    })
+
+    //*********************Common Regin**********************/
+    function ClosePopup(cls) {
+        $('.' + cls).hide();
+    }
+    function CalculatePostTime(strDateTime) {
+        let rtnDateTime = "";
+        try {
+            let date = new Date(strDateTime);
+            let now = new Date();
+
+            let diff = now.getTime() - date.getTime();
+            let diffSeconds = Math.round(diff / 1000 % 60);
+            let diffMinutes = Math.round(diff / (60 * 1000) % 60);
+            let diffHours = Math.round(diff / (60 * 60 * 1000) % 24);
+            let diffInDays = Math.round(diff / (24 * 60 * 60 * 1000));
+
+            if (diffInDays === 0) {
+                if (diffHours === 0) {
+                    if (diffMinutes === 0) {
+                        rtnDateTime = diffSeconds + " sec ago";
+                    } else {
+                        rtnDateTime = diffMinutes + " min ago";
+                    }
+                } else {
+                    rtnDateTime = diffHours + " hrs ago";
+                }
+            } else if (diffInDays === 1) {
+                rtnDateTime = "Yesterday";
+            } else {
+                rtnDateTime = date.toLocaleDateString("en-us", { month: "short", day: "numeric" });
+            }
+        } catch (e) {
+            console.error(e);
+        }
+        return rtnDateTime;
+    }
+    $(window).scroll(function () {
+        if ($(window).scrollTop() + $(window).height() >= $("#dvPostArea").height() && !PostCountExist) {
+            GetPost();
+        }
+    });
+</script>
+
+

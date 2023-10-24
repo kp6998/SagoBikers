@@ -1,0 +1,138 @@
+﻿<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>ChatList</title>
+    <meta charset="utf-8" />
+    <script src="~/Content/JS/Default/3.6.1.jquery.min.js"></script>
+    <script src="~/Content/JS/Default/jquery.blockUI.js"></script>
+    <link href="~/Content/CSS/Default/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/fontawesome-free-6.2.0-web/css/all.css" rel="stylesheet" />
+    <link href="~/Content/CSS/Custom/LightTheme.css" rel="stylesheet" />
+</head>
+<style>
+    .chatListPage {
+        max-width: 500px;
+    }
+
+    .openChat {
+        height: 100%;
+        width: 100%;
+        background-color: white;
+        overflow-x: hidden;
+        text-align: -webkit-center;
+        display: none;
+    }
+
+    .chat-fetch {
+        margin-bottom: 50px;
+    }
+
+    .btn-follow {
+        background: #0d6efd;
+        border: 1px solid #0d6efd;
+        color: white;
+        border-radius: 19px;
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+</style>
+<body>
+    <div style="text-align: -webkit-center;">
+        <div class="chatListPage">
+            <div class="chatListHead d-flex align-items-center py-1 border-bottom fixed-top position-sticky bg-white">
+                <div class="col-2" onclick="">
+                    <a href="/feeds" class="text-dark"><i class="fa-solid fa-chevron-left" style="font-size: larger;"></i></a>
+                </div>
+                <div class="col-8">
+                    <h3>Users</h3>
+                </div>
+                <div class="col-2">
+                </div>
+            </div>
+            <div class="chatListBody">
+                <div class="mt-1">
+                    <input class="form-control mr-sm-2" type="text" id="txtSearchPeople" maxlength="50" oninput="SearchNames()" placeholder="Search people" aria-label="Search">
+                </div>
+                <div class="row">
+                    <div class="col-md-9">
+                        <div class="chatListUser0 bg-transparent px-1 pt-1" id="dvBodyUsers">
+                            <div class="container d-flex align-items-center justify-content-center vh-100">
+                                <div class="row">
+                                    <div class="col-sm-12 col-md-6 offset-md-3 text-center">
+                                        <img src="~/Content/Images/Message.png" class="img-fluid" alt="Message Image" style="width: 30%;">
+                                        <p>No Users here</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3" id="dvFollow">
+                       
+
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+</body>
+
+
+<script>
+    $(document).ready(function () {
+        SearchNames();
+    });
+     function SearchNames()
+    {
+
+        var param = {
+            strName : $("#txtSearchPeople").val()
+        }
+
+        $.ajax({
+            type: "POST",
+            url: "@Url.Action("SearchUsers", "Home")",
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            data: JSON.stringify(param),
+            success: function (data) {
+                if (data.Status == "01") {
+                    var Users = JSON.parse(data.Response);
+                    Users = Users.Temp;
+                    var strBuild = "";
+                    var Follow = "";
+                    $.each(Users, function (i, val) {
+                        Follow += '<div class="row mt-1 mt-1 bg-transparent px-1 pt-1 cls9600591085" style="height:52px;">'
+                        Follow += '    <div class="text-start" style=""><button class="btn-follow ">Follow</button></div>'
+                        Follow += '</div>'
+
+                        strBuild += '<div class="mt-1 bg-transparent px-1 pt-1 cls' + val.USERNAME+ '">';
+                    strBuild += '<div class="d-flex justify-content-between p-1">';
+                    strBuild += '<div class="d-flex">';
+                    strBuild += '<div class="avatar me-2">';
+                    strBuild += '<a href="#"> <img class="avatar-img rounded-circle" src="https://w7.pngwing.com/pngs/223/244/png-transparent-computer-icons-avatar-user-profile-avatar-heroes-rectangle-black.png" alt="" style="height: 40px;"> </a>';
+                    strBuild += '</div> <div class="text-start">';
+                    strBuild += '<h6 class="mb-0 text-primary">' + val.USERNAME + '</h6>';
+                    strBuild += '<p class="mb-0 small">' + val.FULLNAME + '</p>';
+                    strBuild += '</div>';
+                    //strBuild += '<div class="text-start" style="margin-left: 100%;"><button class="btn-follow ">Follow</button></div>';
+                    strBuild += '</div>';
+                    strBuild += '<div class="">';
+                    strBuild += '</div>';
+                    strBuild += '</div>';
+                    strBuild += '</div>';
+                    })
+                    $("#dvBodyUsers").html(strBuild);
+                    $("#dvFollow").html(Follow);
+                }
+                else {
+
+                }
+            },
+            error: function (ex) {
+                alert("Unable to connect remote server.")
+            }
+        });
+
+    }
+</script>

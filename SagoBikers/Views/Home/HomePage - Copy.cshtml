@@ -1,0 +1,151 @@
+﻿@{
+    ViewBag.Title = "HomePage";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    a {
+        text-decoration: none;
+    }
+
+    .cards-div {
+        text-align: -webkit-center;
+    }
+
+    .card {
+        max-width: 500px;
+        text-align: initial;
+        margin-bottom: 10px;
+    }
+</style>
+
+<div class="fixed-top border-bottom border-dark px-3 d-flex position-sticky navbar-div">
+    <div class="col-4"><img src="~/Content/Images/bikersTransparent.png" style="width: 75px; height: 46px; object-fit: cover;" /></div>
+    <div class="col-2"></div>
+    <div class="col-6">
+        <nav class="navbar">
+            <a href="#" class=""><i class="fa-solid fa-magnifying-glass h3"></i></a>
+            <a href="/Home/ImageUpload" class=""><i class="fa-regular fa-square-plus h3"></i></a>
+            <a href="#" class=""><i class="fa-regular fa-message h3"></i></a>
+        </nav>
+    </div>
+</div>
+<div class="cards-div p-2">
+    <div class="card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between">
+                <div class="d-flex">
+                    <!-- Avatar -->
+                    <div class="avatar me-2">
+                        <a href="#">
+                            <img class="avatar-img rounded-circle" src="https://media.istockphoto.com/id/517998264/vector/male-user-icon.jpg?s=612x612&w=0&k=20&c=4RMhqIXcJMcFkRJPq6K8h7ozuUoZhPwKniEke6KYa_k=" alt="" style="height: 40px;">
+                        </a>
+                    </div>
+                    <!-- Info -->
+                    <div>
+                        <a href="#"><h6 class="mb-0"> Name</h6></a>
+                        <p class="mb-0 small">Time</p>
+                    </div>
+                </div>
+                <!-- Card feed action dropdown START -->
+                <div class="dropdown">
+                    <a href="#" class="btn" id="cardFeedAction">
+                        <i class="fa-solid fa-ellipsis-vertical"></i>
+                    </a>
+                </div>
+                <!-- Card feed action dropdown END -->
+            </div>
+        </div>
+        <!-- Card header END -->
+        <!-- Card body START -->
+        <div class="card-body">
+            <p>I'm thrilled to share that I've completed a graduate certificate course in project management with the president's honor roll.</p>
+            <!-- Card img -->
+            <img class="card-img postImg" src="https://tinypng.com/images/social/website.jpg" alt="Post">
+        </div>
+        <div class="card-footer">
+            <!-- Feed react START -->
+
+            <nav class="navbar">
+                <div class=""><img src="~/Content/Icons/yolo.png" width="25px" /> Yolo</div>
+                <div class=""><img src="~/Content/Icons/comment.png" width="25px" /> Comment</div>
+                <div class=""><img src="~/Content/Icons/share.png" width="25px" /> Share</div>
+            </nav>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    $(document).ready(function () {
+        const Credentials = "@Url.Action("GetPosts", "Home")";
+        $.ajax({
+            type: 'GET',
+            url: Credentials,
+            data: { get_param: 'value' },
+            dataType: 'json',
+            success: function (data) {
+                if (data.Status == "01") {
+                    var json = JSON.parse(data.Message);
+                    var printCards = '';
+                    for (var i = 0; i < json.length; i++){
+                        var jsonData = json[i];
+                        printCards += '<div class="card card' + i + '">';
+                        printCards += '<input class="clsPostID"  type="hidden" value="' + jsonData["POSTID"] +'">';
+                        printCards += '<div class="card-header" >';
+                        printCards += '<div class="d-flex justify-content-between">';
+                        printCards += '<div class="d-flex">';
+                        printCards += '<div class="avatar me-2">';
+                        printCards += '<a href="#">';
+                        printCards += '<img class="avatar-img rounded-circle" src="https://media.istockphoto.com/id/517998264/vector/male-user-icon.jpg?s=612x612&w=0&k=20&c=4RMhqIXcJMcFkRJPq6K8h7ozuUoZhPwKniEke6KYa_k=" alt="" style="height: 40px;"> </a>';
+                        printCards += '</div>';
+                        printCards += '<div>';
+                        printCards += '<a href="#"><h6 class="mb-0 postUsername' + i + '"> ' + jsonData["USERID"] + '</h6></a>';
+                        printCards += '<p class="mb-0 small postTime' + i + '">' + (jsonData["POSTDATETIME"] != undefined ? new Date() : "") + '</p>';
+                        printCards += '</div>';
+                        printCards += '</div>';
+                        printCards += '<div class="dropdown">';
+                        printCards += '<a href="#" class="btn" id="cardFeedAction"> <i class="fa-solid fa-ellipsis-vertical"></i> </a>';
+                        printCards += '</div>';
+                        printCards += '</div> ';
+                        printCards += '</div >  ';
+                        printCards += '<div class="card-body"> ';
+                        printCards += '<p class="postContent' + i + '">' + jsonData["POSTCONTENT"] + '</p >';
+                        printCards += '<img class="card-img postImg' + i + '" src="' + (data.Path + jsonData["POSTPATH"]) + '" alt="Post"> ';
+                        printCards += '</div>';
+                        printCards += '<div class="card-footer">  ';
+                        printCards += '<nav class="navbar"> ';
+                        printCards += '<div class="" onclick="TriggerYolo(this)" data-seqno = "'+i+'"><img src="/Content/Icons/yolo.png" width = "25px" /> Yolo</div> ';
+                        printCards += '<div class=""><img src="/Content/Icons/comment.png" width = "25px" /> Comment</div> ';
+                        printCards += '<div class=""><img src="/Content/Icons/share.png" width = "25px" /> Share</div>';
+                        printCards += '</nav>';
+                        printCards += '</div>';
+                        printCards += '</div > ';
+                    }
+                    $('.cards-div').html(printCards);
+                }
+                else {
+                    alert(data.Message)
+                }
+            },
+            error: function (ex) {
+                alert("Unable to connect remote server.");
+            }
+        });
+    });
+
+
+    function TriggerYolo(e) {
+        var PostID = $(e).data("seqno").parents(".card" + i).find(".clsPostID").val();
+        alert(PostID);
+    }
+    function logout() {
+        localStorage.removeItem("Token");
+        const Credentials = "@Url.Action("Logout", "Home")";
+        $.get(Credentials, function (data) {
+            alert(data);
+            window.location.href = "@Url.Action("Login", "Home")";
+        });
+    }
+
+</script>

@@ -1,0 +1,514 @@
+﻿<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>ChatList</title>
+    <meta charset="utf-8" />
+    <script src="~/Content/JS/Default/3.6.1.jquery.min.js"></script>
+    <script src="~/Content/JS/Default/jquery.blockUI.js"></script>
+    <link href="~/Content/CSS/Default/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/fontawesome-free-6.2.0-web/css/all.css" rel="stylesheet" />
+    <link href="~/Content/CSS/Custom/LightTheme.css" rel="stylesheet" />
+    <script src="https://www.gstatic.com/firebasejs/7.17.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.17.2/firebase-database.js"></script>
+</head>
+<style>
+    .chatListPage {
+        max-width: 500px;
+    }
+
+    .openChat {
+        height: 100%;
+        width: 100%;
+        background-color: white;
+        overflow-x: hidden;
+        text-align: -webkit-center;
+        display: none;
+    }
+
+    .card-chat {
+        max-width: 500px;
+    }
+
+    .chat-fetch {
+        margin-bottom: 50px;
+    }
+</style>
+<body>
+    <div style="text-align: -webkit-center;">
+        <div class="chatListPage">
+            <div class="chatListHead d-flex align-items-center py-1 border-bottom fixed-top position-sticky bg-white">
+                <div class="col-2" onclick="">
+                    <a href="/feeds" class="text-dark"><i class="fa-solid fa-chevron-left" style="font-size: larger;"></i></a>
+                </div>
+                <div class="col-8">
+                    <h3>Chats</h3>
+                </div>
+                <div class="col-2">
+                </div>
+            </div>
+            <div class="chatListBody">
+                <div class="m-1">
+                    <input class="form-control mr-sm-2" type="text" id="txtSearchPeople" oninput="SearchNames()" placeholder="Search people" aria-label="Search">
+                </div>
+                @*<div class="chatListUser bg-transparent px-1 pt-1">
+                        <div class="d-flex justify-content-between p-1" onclick="OpenChat('1006', 'test123', 'Test')">
+                            <div class="d-flex">
+                                <div class="avatar me-2"><a href="#"> <img class="avatar-img rounded-circle" src="~/Content/Images/dummyPic.jpg" alt="" style="height: 40px;"> </a></div>
+                                <div class="text-start">
+                                    <h6 class="mb-0 text-primary">AAAA</h6>
+                                    <p class="mb-0 small clsUnread">AAAAAA</p>
+                                </div>
+                            </div>
+                            <div class="">
+                                <p class="mb-0 small clsUnread">Time</p>
+                            </div>
+                        </div>
+                    </div>*@
+                <div class="chatListUser0 chatlist bg-transparent px-1 pt-1" id="dvChat">
+                    <div class="container d-flex align-items-center justify-content-center">
+                        <div class="row">
+                            <div class="col-sm-12 col-md-6 offset-md-3 text-center">
+                                <img src="~/Content/Images/Message.png" class="img-fluid" alt="Message Image" style="width: 30%;">
+                                <p>No message here</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-transparent px-1 pt-1" id="dvUsers">
+                    <div class="container d-flex align-items-center justify-content-center">
+                        <div class="row">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="openChat fixed-top">
+        <div class="card-chat">
+            <div class="chat-close d-flex align-items-center py-1 border-bottom fixed-top position-sticky bg-white">
+                <div class="col-2" onclick="ChatClose()">
+                    <i class="fa-solid fa-chevron-left" style="font-size: larger;"></i>
+                </div>
+                <div class="col-8">
+                    <div class="d-flex">
+                        <div class="avatar me-2">
+                            <a href="#">
+                                <img class="avatar-img rounded-circle" src="~/Content/Images/dummyPic.jpg" alt="" style="height: 40px;">
+                            </a>
+                        </div>
+                        <div class="text-start">
+                            <h6 class="mb-0 text-primary" id="chatFullName">Name</h6>
+                            <p class="mb-0 small" id="chatUsername">username</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-2">
+                    <i class="fa-solid fa-ellipsis-vertical" style="font-size: larger;"></i>
+                </div>
+            </div>
+            <div class="chat-fetch p-2 text-start" id="dvChatBody">
+                <div class="d-flex flex-row justify-content-start" id="mgeReceived">
+                    <p class="small p-2 me-4 mb-1 rounded-3 bg-light">
+                        mgeReceived
+                    </p>
+                </div>
+                <div class="d-flex flex-row justify-content-end" id="mgeSended">
+                    <p class="small p-2 ms-4 mb-1 text-white rounded-3 bg-primary">
+                        mgeSended
+                    </p>
+                </div>
+            </div>
+            <div class="chat-send p-2 border-top fixed-bottom bg-white">
+                <div class="d-flex card-chat">
+                    <form class="w-100 pe-2 mb-0">
+                        <input type="text" maxlength="100" id="txtMessage" class="form-control pe-4 bg-light" rows="1" placeholder="Type your message..." />
+                    </form>
+                    <div class="">
+                        <input type="button" class="btn btn-primary" value="Send" onclick="SendMessage()" id="btnSend" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+<script>
+    var firebaseConfig = {
+        databaseURL: "https://bikerswebapi-default-rtdb.firebaseio.com"
+    };
+    firebase.initializeApp(firebaseConfig);
+    var database = firebase.database();
+    let getUserId = String(GetUserId());
+    const chatRef = firebase.database().ref("Chats");
+    const userRef = firebase.database().ref("Users");
+    let chatUsersArrayList = [];
+    var arrayCount = 0;
+    let messageDateTime = [];
+    var chatListProPicPath = "";
+
+    function GetUserId() {
+        const path = "@Url.Action("GetUserId", "Home")";
+        $.post(path, function (data) {
+            getUserId = data.GetUserId;
+            chatListProPicPath = data.ProPicPath;
+            GetAllUsers();
+        });
+    }
+    function GetAllUsers() {
+
+        //*******************Get All the users for global Arrary/
+        userRef
+            .child(getUserId)
+            .child("ChatsList")
+            .orderByValue()
+            .on("child_added", function (snapshot) {
+                if (snapshot.exists()) {
+                    const userId = snapshot.key;
+                    userRef
+                        .child(userId)
+                        .once("value", function (snapshot) {
+                            if (snapshot.exists() && getUserId !== snapshot.key) {
+                                const userId = snapshot.key;
+                                const fullName = snapshot.child("FullName").val();
+                                const username = snapshot.child("Username").val();
+                                const clsname = username.replace(/[_.]/g, function (match) {
+                                    if (match === "_") {
+                                        return "z";
+                                    } else if (match === ".") {
+                                        return "y";
+                                    }
+                                });
+                                const lastMessage = snapshot.child("LastMessageList").child(getUserId).child("Message").val();
+                                const senderId = snapshot.child("LastMessageList").child(getUserId).child("SenderId").val();
+                                const status = snapshot.child("LastMessageList").child(getUserId).child("Status").val();
+                                const dateTime = CalculateChatTime(snapshot.child("LastMessageList").child(getUserId).child("DateTime").val());
+                                const proPicPath = snapshot.child("ProPicPath").val();
+
+                                chatUsersArrayList.unshift({
+                                    userId: userId,
+                                    username: username,
+                                    clsname: clsname,
+                                    fullName: fullName,
+                                    lastMessage: lastMessage,
+                                    senderId: senderId,
+                                    status: status,
+                                    dateTime: dateTime,
+                                    proPicPath: proPicPath
+                                });
+                                InsertChatList();
+                            }
+
+                        });
+                }
+            });
+
+        userRef
+            .child(getUserId)
+            .child("ChatsList")
+            .on("child_changed", function (snapshot) {
+                if (snapshot.exists()) {
+                    const userId = snapshot.key;
+                    userRef
+                        .child(userId)
+                        .once("value", function (snapshot) {
+                            if (snapshot.exists() && getUserId !== snapshot.key) {
+                                const userId = snapshot.key;
+                                const username = snapshot.child("Username").val();
+                                const clsname = username.replace(/[_.]/g, function (match) {
+                                    if (match === "_") {
+                                        return "z";
+                                    } else if (match === ".") {
+                                        return "y";
+                                    }
+                                });
+                                const fullName = snapshot.child("FullName").val();
+                                const lastMessage = snapshot.child("LastMessageList").child(getUserId).child("Message").val();
+                                const senderId = snapshot.child("LastMessageList").child(getUserId).child("SenderId").val();
+                                const status = snapshot.child("LastMessageList").child(getUserId).child("Status").val();
+                                const dateTime = CalculateChatTime(snapshot.child("LastMessageList").child(getUserId).child("DateTime").val());
+                                const proPicPath = snapshot.child("ProPicPath").val();
+
+                                //console.log(userId, fullName, username, lastMessage);
+                                const index = chatUsersArrayList.findIndex(function (item) {
+                                    return item.userId == userId;
+                                });
+                                if (index !== -1) {
+                                    chatUsersArrayList.splice(index, 1);
+                                }
+                                chatUsersArrayList.unshift({
+                                    userId: userId,
+                                    username: username,
+                                    clsname: clsname,
+                                    fullName: fullName,
+                                    lastMessage: lastMessage,
+                                    senderId: senderId,
+                                    status: status,
+                                    dateTime: dateTime,
+                                    proPicPath: proPicPath
+                                });
+                                UpdateChatList();
+                            }
+                        });
+                }
+            });
+
+
+    }
+
+    function InsertChatList() {
+        $(".chatListUser0").html("");
+        var userArray = chatUsersArrayList[0];
+        //console.log(userArray);
+        var strBuild = "";
+        strBuild += '<div class="chatListUser' + (arrayCount + 1) + ' chatlist bg-transparent px-1 pt-1 cls' + userArray["clsname"] + '">';
+        strBuild += '<div class="d-flex justify-content-between p-1" onclick="OpenChat(\'' + userArray["userId"] + '\', \'' + userArray["username"] + '\', \'' + userArray["fullName"] + '\', \'' + userArray["status"] + '\', \'' + (arrayCount + 1) + '\')">';
+        strBuild += '<div class="d-flex">';
+        strBuild += '<div class="avatar me-2">';
+        var proPicPath = '/Content/Images/dummyPic.jpg';
+        if (userArray["proPicPath"] != null && userArray["proPicPath"] != "") proPicPath = chatListProPicPath + userArray["proPicPath"];
+        strBuild += '<a href="#"> <img class="avatar-img rounded-circle" src="' + proPicPath +'" alt="" style="height: 40px;"> </a>';
+        strBuild += '</div> <div class="text-start">';
+        strBuild += '<h6 class="mb-0 text-primary">' + userArray["fullName"] + '</h6>';
+        strBuild += '<p class="mb-0 small clsUnread' + (arrayCount + 1) + '">' + userArray["lastMessage"] + '</p>';
+        strBuild += '</div>';
+        strBuild += '</div>';
+        strBuild += '<div class="">';
+        strBuild += '<p class="mb-0 small clsUnread' + (arrayCount + 1) + '">' + userArray["dateTime"] + '</p>';
+        strBuild += '</div>';
+        strBuild += '</div>';
+        strBuild += '</div>';
+        $(".chatListUser" + arrayCount).before(strBuild);
+        if (getUserId != userArray["senderId"] && userArray["status"] == "unread") $(".clsUnread" + (arrayCount + 1)).addClass("fw-bold");
+        arrayCount++;
+    }
+    function UpdateChatList() {
+        var userArray = chatUsersArrayList[0];
+        var preUserArray = chatUsersArrayList[1];
+        var preClsName = preUserArray != undefined ? ".cls" + preUserArray["clsname"] : ".chatListUser0";
+        $('.cls' + userArray["clsname"]).remove();
+        //console.log(chatUsersArrayList);
+        var strBuild = "";
+        strBuild += '<div class="chatListUser' + (arrayCount + 1) + ' bg-transparent px-1 pt-1 cls' + userArray["clsname"] + '">';
+        strBuild += '<div class="d-flex justify-content-between p-1" onclick="OpenChat(\'' + userArray["userId"] + '\', \'' + userArray["username"] + '\', \'' + userArray["fullName"] + '\', \'' + userArray["status"] + '\', \'' + (arrayCount + 1) + '\')">';
+        strBuild += '<div class="d-flex">';
+        strBuild += '<div class="avatar me-2">';
+        var proPicPath = '/Content/Images/dummyPic.jpg';
+        if (userArray.proPicPath != null && userArray.proPicPath != "") proPicPath = chatListProPicPath + userArray.proPicPath;
+        strBuild += '<a href="#"> <img class="avatar-img rounded-circle" src="' + proPicPath + '" alt="" style="height: 40px;"> </a>';
+        strBuild += '</div> <div class="text-start">';
+        strBuild += '<h6 class="mb-0 text-primary">' + userArray["fullName"] + '</h6>';
+        strBuild += '<p class="mb-0 small clsUnread' + (arrayCount + 1) + '">' + userArray["lastMessage"] + '</p>';
+        strBuild += '</div>';
+        strBuild += '</div>';
+        strBuild += '<div class="">';
+        strBuild += '<p class="mb-0 small clsUnread' + (arrayCount + 1) + '">' + userArray["dateTime"] + '</p>';
+        strBuild += '</div>';
+        strBuild += '</div>';
+        strBuild += '</div>';
+        $(preClsName).before(strBuild);
+        if (getUserId != userArray["senderId"] && userArray["status"] == "unread") $(".clsUnread" + (arrayCount + 1)).addClass("fw-bold");
+        arrayCount++;
+    }
+    function CalculateChatTime(strDateTime) {
+        let rtnDateTime = "";
+        try {
+            let isoDateTime = strDateTime.replace(/(\d{2})\/(\d{2})\/(\d{4})\s(\d{2}):(\d{2}):(\d{2})/, "$3-$2-$1T$4:$5:$6");
+            let date = new Date(isoDateTime);
+            let now = new Date();
+
+            let diff = now.getTime() - date.getTime();
+            let diffSeconds = Math.round(diff / 1000 % 60);
+            let diffMinutes = Math.round(diff / (60 * 1000) % 60);
+            let diffHours = Math.round(diff / (60 * 60 * 1000) % 24);
+            let diffInDays = Math.round(diff / (24 * 60 * 60 * 1000));
+
+            if (diffInDays === 0) {
+                if (diffHours === 0) {
+                    if (diffMinutes === 0) {
+                        rtnDateTime = diffSeconds + " sec";
+                    } else {
+                        rtnDateTime = diffMinutes + " min";
+                    }
+                } else {
+                    rtnDateTime = diffHours + " hrs";
+                }
+            } else if (diffInDays === 1) {
+                rtnDateTime = "Yesterday";
+            } else {
+                rtnDateTime = date.toLocaleDateString("en-us", { month: "short", day: "numeric" });
+            }
+        } catch (e) {
+            console.error(e);
+        }
+        return rtnDateTime;
+    }
+    function ChatClose() {
+        $('.openChat').hide();
+    }
+
+    var toUserId;
+    function OpenChat(userId, username, fullName, status, arrCount) {
+        toUserId = userId;
+        $('#chatFullName').html(fullName);
+        $('#chatUsername').html(username);
+        $('#dvChatBody').html("");
+        GetMessages();
+        $('.openChat').show();
+        if (status == "unread") {
+            userRef.child(getUserId).child("LastMessageList")
+                .child(toUserId).child("Status").set("read");
+            userRef.child(toUserId).child("LastMessageList")
+                .child(getUserId).child("Status").set("read");
+            $(".clsUnread" + arrCount).removeClass("fw-bold");
+        }
+
+    }
+    function GetMessages() {
+        chatRef.on("child_added", function (snapshot) {
+            if (snapshot.exists()) {
+                var recId = snapshot.child("ReceiverId").val();
+                var senderId = snapshot.child("SenderId").val();
+                var userId = getUserId;
+                var recUserId = toUserId;
+
+                if (recId == userId && senderId == recUserId) {
+                    var lastMessageDateTime = messageDateTime[messageDateTime.length - 1];
+                    var currentMessageDateTime = snapshot.child("DateTime").val();
+
+                    if (messageDateTime.length > 0 && lastMessageDateTime == currentMessageDateTime) {
+                        // do nothing
+                    } else {
+                        messageDateTime.push(currentMessageDateTime);
+                        var strBuild = "";
+                        strBuild += '<div class="d-flex flex-row justify-content-start" id="mgeReceived">';
+                        strBuild += '<p class="small p-2 me-4 mb-1 rounded-3 bg-light">';
+                        strBuild += snapshot.child("Message").val();
+                        strBuild += '</p>';
+                        strBuild += '</div>';
+                        $('#dvChatBody').append(strBuild);
+                    }
+                    //$(document).scrollTop($(document).height());
+                }
+                else if (recId == recUserId && senderId == userId) {
+                    var lastMessageDateTime = messageDateTime[messageDateTime.length - 1];
+                    var currentMessageDateTime = snapshot.child("DateTime").val();
+
+                    if (messageDateTime.length > 0 && lastMessageDateTime == currentMessageDateTime) {
+                        // do nothing
+                    } else {
+                        messageDateTime.push(currentMessageDateTime);
+                        var strBuild = "";
+                        strBuild += '<div class="d-flex flex-row justify-content-end" id="mgeSended">';
+                        strBuild += '<p class="small p-2 ms-4 mb-1 text-white rounded-3 bg-primary">';
+                        strBuild += snapshot.child("Message").val();
+                        strBuild += '</p>';
+                        strBuild += '</div>';
+                        $('#dvChatBody').append(strBuild);
+                    }
+                    //$(document).scrollTop($(document).height());
+                }
+            }
+            //$(document).scrollTop($(document).height());
+        });
+    }
+    function SendMessage() {
+        if ($("#txtMessage").val() == "") {
+            alert("Enter message");
+            return;
+        }
+        var currentDate = new Date();
+        var date = currentDate.getDate();
+        var month = currentDate.getMonth() + 1;
+        var year = currentDate.getFullYear();
+        var hours = currentDate.getHours();
+        var minutes = currentDate.getMinutes();
+        var seconds = currentDate.getSeconds();
+        var formattedDate = (date < 10 ? "0" + date : date) + "/" + (month < 10 ? "0" + month : month) + "/" + year + " " + (hours < 10 ? "0" + hours : hours) + ":" + (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
+
+        var map = {};
+        map["SenderId"] = getUserId;
+        map["ReceiverId"] = toUserId;
+        map["Message"] = $("#txtMessage").val();
+        map["DateTime"] = formattedDate;
+        var tempStore = $("#txtMessage").val();
+        $("#txtMessage").val("");
+        chatRef.push().set(map, function (error) {
+            if (error) {
+                alert("Data could not be saved." + error);
+            } else {
+                userRef.child(getUserId).child("ChatsList").child(toUserId).set(firebase.database.ServerValue.TIMESTAMP);
+                userRef.child(toUserId).child("ChatsList").child(getUserId).set(firebase.database.ServerValue.TIMESTAMP);
+                var lastMsgDtls = {};
+                lastMsgDtls["SenderId"] = getUserId;
+                lastMsgDtls["Message"] = tempStore;
+                lastMsgDtls["Status"] = "unread";
+                var now = new Date();
+                var day = now.getDate().toString().padStart(2, "0");
+                var month = (now.getMonth() + 1).toString().padStart(2, "0");
+                var year = now.getFullYear().toString();
+                var hours = now.getHours().toString().padStart(2, "0");
+                var minutes = now.getMinutes().toString().padStart(2, "0");
+                var seconds = now.getSeconds().toString().padStart(2, "0");
+                var formattedDate = day + "/" + month + "/" + year + " " + hours + ":" + minutes + ":" + seconds;
+                lastMsgDtls["DateTime"] = formattedDate;
+                userRef.child(getUserId).child("LastMessageList").child(toUserId).set(lastMsgDtls);
+                userRef.child(toUserId).child("LastMessageList").child(getUserId).set(lastMsgDtls);
+            }
+        });
+    }
+
+    function SearchNames()
+    {
+           if ($("#txtSearchPeople").val() == "") {
+               $(".chatlist").show();
+               $("#dvUsers").hide();
+               return false;
+           }
+        var param = {
+            strName : $("#txtSearchPeople").val()
+        }
+
+        $.ajax({
+            type: "POST",
+            url: "@Url.Action("SearchUsers", "Home")",
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            data: JSON.stringify(param),
+            success: function (data) {
+                if (data.Status == "01") {
+                    var Users = JSON.parse(data.Message);
+                    Users = Users.Temp;
+                    var strBuild = "";
+                    $.each(Users, function (i, val) {
+                        strBuild += '<div class="mt-1 bg-transparent px-1 pt-1 cls' + val.USERNAME + '" onclick="OpenChat(\'' + val.USERID + '\', \'' + val.USERNAME + '\', \'' + val.FULLNAME + '\')">';
+                        strBuild += '<div class="d-flex justify-content-between p-1">';
+                        strBuild += '<div class="d-flex">';
+                        strBuild += '<div class="avatar me-2">';
+                        var proPicPath = '/Content/Images/dummyPic.jpg';
+                        if (val.PROPICPATH != null && val.PROPICPATH != "") proPicPath = data.ProPicPath + val.PROPICPATH;
+                        strBuild += '<a href="#"> <img class="avatar-img rounded-circle" src="' + proPicPath + '" alt="" style="height: 40px;"> </a>';
+                        strBuild += '</div> <div class="text-start">';
+                        strBuild += '<h6 class="mb-0 text-primary">' + val.USERNAME + '</h6>';
+                        strBuild += '<p class="mb-0 small">' + val.FULLNAME + '</p>';
+                        strBuild += '</div>';
+                        //strBuild += '<div class="text-start" style="margin-left: 100%;"><button class="btn-follow ">Follow</button></div>';
+                        strBuild += '</div>';
+                        strBuild += '<div class="">';
+                        strBuild += '</div>';
+                        strBuild += '</div>';
+                        strBuild += '</div>';
+                    })
+                    $(".chatlist").hide(); $("#dvUsers").show();
+                    $("#dvUsers").html(strBuild);
+                }
+                else {
+
+                }
+            },
+            error: function (ex) {
+                alert("Unable to connect remote server.")
+            }
+        });
+
+    }
+</script>

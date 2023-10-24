@@ -1,0 +1,10 @@
+[
+  {
+    "relation": [ "delegate_permission/common.handle_all_urls" ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.example.bikers",
+      "sha256_cert_fingerprints": [ "2E:AD:3D:98:0E:3F:19:5B:57:87:92:37:A4:96:EB:D2:18:E9:84:2F:E7:43:FE:0C:59:E2:C5:C3:C6:54:75:2E" ]
+    }
+  }
+]

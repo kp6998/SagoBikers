@@ -1,0 +1,55 @@
+﻿<html>
+<head>
+    <title>Add bikes</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="~/Content/JS/Default/3.6.1.jquery.min.js"></script>
+    <script src="~/Content/JS/Default/jquery.blockUI.js"></script>
+    <link href="~/Content/CSS/Default/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/fontawesome-free-6.2.0-web/css/all.css" rel="stylesheet" />
+</head>
+<body>
+    <div>
+        <div class="fixed-top border-bottom px-2 d-flex position-sticky align-items-center justify-content-between navbar-div bg-white">
+            <div class="col-2" onclick="history.back()">
+                <i class="fa-solid fa-chevron-left" style="font-size: larger;"></i>
+            </div>
+            <div>
+                <h3 class="mb-0 p-1">Add bike</h3>
+            </div>
+            <div class="col-2 text-end" onclick="">
+            </div>
+        </div>
+        <div class="profileEditBody text-center p-2">
+            <div class="border border-dark mb-2">
+                <label class="w-100 p-2" for="imgUpload">
+                    <img id="imgPreview" src="~/Content/Images/addimage.png" style="max-width: 100%; max-height: 300px;" />
+                </label>
+                <input type="file" accept="image/*" name="imgUpload" id="imgUpload" onchange="LoadFile(event)" style="display:none" />
+            </div>
+            <div>
+                <div class="form-outline mb-2">
+                    <input type="text" id="strBikeName" class="form-control" placeholder="Nickname for your bike" />
+                </div>
+                <div class="form-outline mb-2">
+                    <input type="text" id="strBikeBrand" class="form-control" placeholder="Enter your bike brand" />
+                </div>
+                <div class="form-outline mb-2">
+                    <input type="text" id="strBikeModel" class="form-control" placeholder="Enter your bike model" />
+                </div>
+                <div class="form-outline mb-2">
+                    <input type="text" id="strAnniversary" class="form-control" placeholder="Enter bike purchased date" />
+                </div>
+                <div class="form-outline mb-2"> 
+                    <input type="text" id="strBikeNumber" class="form-control" placeholder="Enter your bike number" />
+                </div>
+                <div>
+                    <input type="button" class="btn btn-primary" value="Add to garage" />
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+<script>
+
+</script>

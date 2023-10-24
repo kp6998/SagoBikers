@@ -1,0 +1,78 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+
+namespace SagoBikers.Models
+{
+    public class RQRS
+    {
+        #region Request
+        public class Reg_and_Login
+        {
+            public string strEmail { get; set; }
+            public string strMobileNo { get; set; }
+            public string fullname { get; set; }
+            public string username { get; set; }
+            public string password { get; set; }
+            public string userId { get; set; }
+            public string flag { get; set; }
+        };
+        public class PostRequest
+        {
+            public string  strUserId{ get; set; }
+            public string strOtherUserId { get; set; }
+            public string strPostContent { get; set; }
+            public string strPostPath { get; set; }
+            public string strPostID { get; set; }
+            public string strFlag { get; set; }
+            public int startWith { get; set; }
+            public int EndWith { get; set; }
+        }
+
+        public class BikesRequest
+        {
+            public string strUserId { get; set; }
+            public string strBikeId { get; set; }
+            public string strImagePath { get; set; }
+            public string strBikeName { get; set; }
+            public string strBikeBrand { get; set; }
+            public string strBikeModel { get; set; }
+            public string strAnniversary { get; set; }
+            public string strRegNumber { get; set; }
+            public string strFlag { get; set; }
+        }
+        public class ProfileRequest
+        {
+            public string strUserId { get; set; }
+            public string strOtherUserId { get; set; }
+            public string strProPicPath { get; set; }
+            public string strFullName { get; set; }
+            public string strUsername { get; set; }
+            public string strMobile { get; set; }
+            public string strMail { get; set; }
+            public string strGender { get; set; }
+            public string strDob { get; set; }
+            public string strUserLocation { get; set; }
+            public string strUserBio { get; set; }
+            public string strFlag { get; set; }
+        }
+        public class SearchRequest
+        {
+            public string strUserId { get; set; }
+            public string strName { get; set; }
+        }
+
+        #endregion
+
+        #region Resopnse
+        public class ResponseData
+        {
+            public string strStatus { get; set; }
+            public string strResponse { get; set; }
+            public string strErrorMessage { get; set; }  
+        };
+        #endregion
+
+    }
+}

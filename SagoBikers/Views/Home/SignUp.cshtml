@@ -1,0 +1,218 @@
+﻿<head>
+    <title>Sign Up</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="~/Content/JS/Default/3.6.1.jquery.min.js"></script>
+    <script src="~/Content/JS/Default/jquery.blockUI.js"></script>
+    <script src="~/Content/JS/Default/WebValidation.js"></script>
+    <link href="~/Content/CSS/Default/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/fontawesome-free-6.2.0-web/css/all.css" rel="stylesheet" />
+    <script src="https://www.gstatic.com/firebasejs/7.17.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.17.2/firebase-database.js"></script>
+    <link href="~/Content/CSS/Custom/LightTheme.css" rel="stylesheet" />
+    <script src="~/Content/JS/Custom/CustomJS.js"></script>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="row d-flex justify-content-center align-items-center h-100">
+            <div class="col-md-9 col-lg-6 col-xl-5 text-center">
+                <img src="~/Content/Images/bikersTransparent.png"
+                     class="img-fluid" alt="Sample image">
+            </div>
+            <div class="col-md-8 col-lg-6 col-xl-4 offset-xl-1">
+                <form>
+                    <div class="form-outline mb-4">
+                        <input type="text" id="strNumberEmail" class="form-control clsMandate"
+                               placeholder="Enter Mobile Number or Email" maxlength="50" />
+                    </div>
+                    <div class="form-outline mb-4">
+                        <input type="text" id="strFullname" onkeypress="return ValidateAlphaCapsspace(event)" class="form-control clsMandate"
+                               placeholder="Enter Full Name" maxlength="50" />
+                    </div>
+                    <div class="form-outline mb-4">
+                        <input type="text" id="strUsername" onchange="GetUserId(this)" onkeydown="removeUserNamevalidation(this)" onkeypress="return ValidateAlphawithUnderscore(event)" class="form-control clsMandate"
+                               placeholder="Enter Username" maxlength="20" />
+                    </div>
+                    <div class="form-outline mb-3">
+                        <input type="password" id="strPassword" class="form-control clsMandate"
+                               placeholder="Enter password" maxlength="50" />
+                        <span toggle="#strPassword" class="fa fa-fw fa-eye field-icon toggle-password password-icon"></span>
+                    </div>
+
+                    <div class="text-center text-lg-start pt-2">
+                        <button type="button" class="btn btn-primary btn-lg"
+                                style="padding-left: 2.5rem; padding-right: 2.5rem;"
+                                onclick="Register()">
+                            Sign Up
+                        </button>
+                        <p class="fw-bold mt-2 pt-1 mb-0">
+                            Already have an account? <a href="@Url.Action("Login", "Home")"
+                                                        class="link-danger fs-5">Login</a>
+                        </p>
+                    </div>
+                </form>
+
+                <div class="text-center text-lg-start" style="display:none !important;">
+                    <p class="fw-bold">Or</p>
+                </div>
+
+                <div class="d-flex flex-row align-items-center justify-content-center justify-content-lg-start" style="display:none !important;">
+                    <p class="lead fw-normal mb-0 me-3">Sign in with</p>
+                    <button type="button" class="btn btn-primary btn-floating mx-1">
+                        <i class="fab fa-facebook-f"></i>
+                    </button>
+
+                    <button type="button" class="btn btn-primary btn-floating mx-1">
+                        <i class="fab fa-twitter"></i>
+                    </button>
+
+                    <button type="button" class="btn btn-primary btn-floating mx-1">
+                        <i class="fab fa-linkedin-in"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+<script>
+
+    $(document).ready(function () {
+        findDevice();
+    });
+    function findDevice() {
+        let details = navigator.userAgent;
+        let regexp = /android|iphone|kindle|ipad/i;
+        let isMobileDevice = regexp.test(details);
+        if (isMobileDevice) {
+            $('.img-fluid').addClass('w-50');
+            $('.blockUIimg').addClass('w-75');
+        } else {
+            $('.img-fluid').removeClass('w-50');
+            $('.blockUIimg').removeClass('w-75');
+        }
+    }
+
+
+    //*************UserName Validation*****************************/
+    function removeUserNamevalidation(e) {
+        $(e).removeClass("border-success").removeClass("border border-danger");
+        $(".clsspnUsername").remove();
+    }
+    function GetUserId(e)
+    {
+        removeUserNamevalidation(e);
+        if ($(e).val().length < 6) return false;
+        var param = {
+            strUserName : $(e).val()
+        }
+
+        $.ajax({
+            type: "POST",
+            url: "@Url.Action("CheckUserName", "Home")",
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            data: JSON.stringify(param),
+            success: function (data) {
+                if (data.result) {
+                    $(e).addClass("border border-success");
+                    $(e).after('<span style="color:green" class="clsspnUsername">Username available</span>');
+                }
+                else {
+                    $(e).addClass("border border-danger");
+                    $(e).after('<span style="color:red" class="clsspnUsername">Username not available</span>');
+                }
+            },
+            error: function (ex) {
+                alert("Unable to connect remote server.")
+            }
+        });
+
+    }
+
+    //****************************Registration***********************************
+    var firebaseConfig = {
+        databaseURL: "https://bikerswebapi-default-rtdb.firebaseio.com"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const userRef = firebase.database().ref("Users");
+    function Register() {
+        var PhnNo = "";
+        var Email = "";
+        //Validation Region
+        var strAlertMsg = "";
+        $(".clsMandate").each(function () {
+            if ($(this).val() == "") {
+                strAlertMsg = "Please" + $(this).attr("placeholder");
+                return false;
+            }
+        });
+        if (strAlertMsg != "") {
+            alert(strAlertMsg);
+            return false;
+        }
+
+        var EmailorPhn = $('#strNumberEmail').val();
+        if(!isNaN(EmailorPhn)) {
+            if (EmailorPhn.length != 10) {
+                alert("Please enter valid mobile no");
+                return false;
+            }
+        }
+        else {
+            var filter = /^([\w-]+(?:\.[\w-]+)*)@@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,8}(?:\.[a-z]{2})?)$/i;
+            if (!filter.test(EmailorPhn)) {
+                alert("Please enter valid email id");
+                return false;
+            }
+        }
+        if ($('#strUsername').val().length < 6) {
+            alert("User Name should contains minimum 6 characters");
+            return false;
+        }
+        var PasswordPolicy = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
+        if (!PasswordPolicy.test($('#strPassword').val())) {
+            alert("Password should satisfy our policy.");
+            return false;
+        }
+
+        var param = {
+            strEmail: isNaN(EmailorPhn) ? $('#strNumberEmail').val() : "",
+            strMobileNo: !isNaN(EmailorPhn) ? $('#strNumberEmail').val() : "",
+            strFullname: $('#strFullname').val(),
+            strUsername: $('#strUsername').val(),
+            strPassword: $('#strPassword').val(),
+            strFlag: 'R'
+        }
+
+        //Ajax Region
+        $(document).ajaxStart($.blockUI({ message: '<img src="/Content/Images/bike_transparent.gif" style="width: 25%;" class="blockUIimg"/>' })).ajaxStop($.unblockUI);
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("RegistrationLogin", "Home")',
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            data: JSON.stringify(param),
+            success: function (data) {
+                if (data.Status == "01") {
+                    let getUserId = data.Message;
+                    let getUsername = $('#strUsername').val();
+                    let getFullName = $('#strFullname').val();
+                    AddUserInFirebase(getUserId, getUsername, getFullName);
+                    alert("Registered Successfully");
+                    window.location.href = "@Url.Action("Login", "Home")";
+                }
+                else {
+                    alert(data.Message);
+                }
+            },
+            error: function (ex) {
+                alert("Unable to connect remote server.")
+            }
+        });
+    }
+    function AddUserInFirebase(getUserId, getUsername, getFullName) {
+        userRef.child(getUserId).child("Username").set(getUsername);
+        userRef.child(getUserId).child("FullName").set(getFullName);
+    }
+</script>
