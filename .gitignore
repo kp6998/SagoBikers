@@ -363,4 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 
 # Ignore web.config
-/web.config
+/SagoBikers/Web.config
