@@ -277,6 +277,7 @@ namespace SagoBikers.Controllers
                 PostRequest.strPostContent = postContent;
                 PostRequest.strPostPath = strPostID + "." + strExtention;
                 PostRequest.strPostID = strPostID;
+                PostRequest.strFlag = "IP";
                 string strRequest = JsonConvert.SerializeObject(PostRequest);
                 RQRS.ResponseData Response = Baseclass.InvokeServiceReq("API/ManagePosts", strRequest, "POST");
                 if (Response != null && Response.strStatus == "01")
